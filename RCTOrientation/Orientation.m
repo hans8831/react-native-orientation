@@ -37,6 +37,7 @@ static int _orientation = 3;
 + (void)setOrientation: (int)orientation {
   _orientation = orientation;
 }
+
 + (int)getOrientation {
   return _orientation;
 }
@@ -50,20 +51,19 @@ static int _orientation = 3;
 
 }
 
+
 - (void)dealloc
 {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
-
 - (void)deviceOrientationDidChange:(NSNotification *)notification
 {
+
   UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-  [_bridge.eventDispatcher sendDeviceEventWithName:@"specificOrientationDidChange"
-                                              body:@{@"specificOrientation": [self getSpecificOrientationStr:orientation]}];
+  NSString *orientationStr = [self getOrientationStr:orientation];
 
   [_bridge.eventDispatcher sendDeviceEventWithName:@"orientationDidChange"
-                                              body:@{@"orientation": [self getOrientationStr:orientation]}];
-
+                                              body:@{@"orientation": orientationStr}];
 }
 
 - (NSString *)getOrientationStr: (UIDeviceOrientation)orientation {
@@ -89,32 +89,6 @@ static int _orientation = 3;
   return orientationStr;
 }
 
-- (NSString *)getSpecificOrientationStr: (UIDeviceOrientation)orientation {
-  NSString *orientationStr;
-  switch (orientation) {
-    case UIDeviceOrientationPortrait:
-      orientationStr = @"PORTRAIT";
-      break;
-
-    case UIDeviceOrientationLandscapeLeft:
-      orientationStr = @"LANDSCAPE-LEFT";
-      break;
-
-    case UIDeviceOrientationLandscapeRight:
-      orientationStr = @"LANDSCAPE-RIGHT";
-      break;
-
-    case UIDeviceOrientationPortraitUpsideDown:
-      orientationStr = @"PORTRAITUPSIDEDOWN";
-      break;
-
-    default:
-      orientationStr = @"UNKNOWN";
-      break;
-  }
-  return orientationStr;
-}
-
 RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(getOrientation:(RCTResponseSenderBlock)callback)
@@ -124,18 +98,9 @@ RCT_EXPORT_METHOD(getOrientation:(RCTResponseSenderBlock)callback)
   callback(@[[NSNull null], orientationStr]);
 }
 
-RCT_EXPORT_METHOD(getSpecificOrientation:(RCTResponseSenderBlock)callback)
-{
-  UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-  NSString *orientationStr = [self getSpecificOrientationStr:orientation];
-  callback(@[[NSNull null], orientationStr]);
-}
-
 RCT_EXPORT_METHOD(lockToPortrait)
 {
-  #if DEBUG
-    NSLog(@"Locked to Portrait");
-  #endif
+  NSLog(@"Locked to Portrait");
   [Orientation setOrientation:1];
   [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
     [[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: UIInterfaceOrientationPortrait] forKey:@"orientation"];
@@ -143,47 +108,27 @@ RCT_EXPORT_METHOD(lockToPortrait)
 
 }
 
-RCT_EXPORT_METHOD(lockToLandscape)
+RCT_EXPORT_METHOD(lockToLandscapeLeft)
 {
-  #if DEBUG
-    NSLog(@"Locked to Landscape");
-  #endif
+  NSLog(@"Locked to lockToLandscapeLeft");
   [Orientation setOrientation:2];
   [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
     [[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: UIInterfaceOrientationLandscapeLeft] forKey:@"orientation"];
   }];
-  
 }
 
 RCT_EXPORT_METHOD(lockToLandscapeRight)
 {
-  #if DEBUG
-    NSLog(@"Locked to Landscape Right");
-  #endif
-    [Orientation setOrientation:2];
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
-        [[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: UIInterfaceOrientationLandscapeLeft] forKey:@"orientation"];
-    }];
-
-}
-
-RCT_EXPORT_METHOD(lockToLandscapeLeft)
-{
-  #if DEBUG
-    NSLog(@"Locked to Landscape Left");
-  #endif
-  [Orientation setOrientation:2];
-  [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
-    [[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: UIInterfaceOrientationLandscapeRight] forKey:@"orientation"];
-  }];
-
+	NSLog(@"Locked to lockToLandscapeRight");
+	[Orientation setOrientation:2];
+	[[NSOperationQueue mainQueue] addOperationWithBlock:^ {
+		[[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: UIInterfaceOrientationLandscapeRight] forKey:@"orientation"];
+	}];
 }
 
 RCT_EXPORT_METHOD(unlockAllOrientations)
 {
-  #if DEBUG
-    NSLog(@"Unlock All Orientations");
-  #endif
+  NSLog(@"Unlock All Orientations");
   [Orientation setOrientation:3];
 //  AppDelegate *delegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
 //  delegate.orientation = 3;
